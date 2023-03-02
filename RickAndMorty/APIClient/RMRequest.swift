@@ -18,7 +18,7 @@ final class RMRequest {
     private let endpoint: RMEndpoint
     
     /// Path components for API, if any
-    private let pathComponents: Set<String>
+    private let pathComponents: [String]
     
     /// Query arguments for API, if any
     private let queryParameters: [URLQueryItem]
@@ -41,7 +41,7 @@ final class RMRequest {
                 return "\($0.name)=\(value)"
             }.joined(separator: "&")
             
-            string += argumentString
+            string += argumentString //結果會變這樣：?name1=value1&name2=value2
         }
         
         return string
@@ -69,9 +69,13 @@ final class RMRequest {
     ///   - endpoint: Target endpoint
     ///   - pathComponents: Collection of path components
     ///   - queryParamters: Collection of query parameters
-    public init(endpoint: RMEndpoint, pathComponents: Set<String> = [], queryParamters: [URLQueryItem] = []) {
+    public init(endpoint: RMEndpoint, pathComponents: [String] = [], queryParamters: [URLQueryItem] = []) {
         self.endpoint = endpoint
         self.pathComponents = pathComponents
         self.queryParameters = queryParamters
     }
+}
+
+extension RMRequest {
+    static let listCharatersRequests = RMRequest(endpoint: .character)
 }
