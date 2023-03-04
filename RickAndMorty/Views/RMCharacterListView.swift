@@ -1,0 +1,83 @@
+//
+//  RMCharacterListView.swift
+//  RickAndMorty
+//
+//  Created by Tai Chin Huang on 2023/3/4.
+//
+
+import UIKit
+
+/// View that handles showing list of characters, loader, etc...
+final class RMCharacterListView: UIView {
+    
+    private let viewModel = RMCharacterListViewViewModel()
+    
+    private let spinner: UIActivityIndicatorView = { // anonymous closure
+        let spinner = UIActivityIndicatorView(style: .large)
+        spinner.hidesWhenStopped = true
+        spinner.translatesAutoresizingMaskIntoConstraints = false
+        return spinner
+    }()
+    
+    private let collectionView: UICollectionView = {
+        let layout = UICollectionViewFlowLayout()
+        layout.scrollDirection = .vertical
+        layout.sectionInset = UIEdgeInsets(top: 0, left: 10, bottom: 0, right: 10)
+        let collectionView = UICollectionView(frame: .zero, collectionViewLayout: layout)
+        collectionView.isHidden = true
+        collectionView.alpha = 0
+        collectionView.translatesAutoresizingMaskIntoConstraints = false
+        collectionView.register(RMCharacterCollectionViewCell.self,
+                                forCellWithReuseIdentifier: RMCharacterCollectionViewCell.reuseIdentifier)
+        return collectionView
+    }()
+    
+    // MARK: - Init
+    override init(frame: CGRect) {
+        super.init(frame: frame)
+        
+        configure()
+        viewModel.fetchCharacters()
+        setupCollectionView()
+    }
+    
+    required init?(coder: NSCoder) {
+        fatalError("init(coder:) has not been implemented")
+    }
+    
+    // Some basic UI setup
+    private func configure() {
+        translatesAutoresizingMaskIntoConstraints = false
+        
+        addSubviews(collectionView, spinner)
+        
+        NSLayoutConstraint.activate([
+            spinner.widthAnchor.constraint(equalToConstant: 100),
+            spinner.heightAnchor.constraint(equalToConstant: 100),
+            spinner.centerXAnchor.constraint(equalTo: centerXAnchor),
+            spinner.centerYAnchor.constraint(equalTo: centerYAnchor),
+            
+            collectionView.topAnchor.constraint(equalTo: topAnchor),
+            collectionView.leadingAnchor.constraint(equalTo: leadingAnchor),
+            collectionView.trailingAnchor.constraint(equalTo: trailingAnchor),
+            collectionView.bottomAnchor.constraint(equalTo: bottomAnchor),
+        ])
+        
+        spinner.startAnimating()
+    }
+    
+    private func setupCollectionView() {
+        // 可以把view當作collectionView的delegate/dataSource或者把這個工作交給viewModel來做
+        collectionView.dataSource = viewModel
+        collectionView.delegate = viewModel
+        
+        DispatchQueue.main.asyncAfter(deadline: .now() + 2) {
+            self.spinner.stopAnimating()
+            
+            self.collectionView.isHidden = false
+            UIView.animate(withDuration: 0.4, delay: 0.2) {
+                self.collectionView.alpha = 1
+            }
+        }
+    }
+}

@@ -7,13 +7,22 @@
 
 import UIKit
 
+/*
+ 把網路抓取層移到ViewModel
+ */
+
 /// Controller to show and search for Characters
 final class RMCharacterViewController: UIViewController {
+    
+    private let characterListView = RMCharacterListView()
 
     override func viewDidLoad() {
         super.viewDidLoad()
         
         view.backgroundColor = .systemBackground
+        view.addSubview(characterListView)
+        
+        configureUI()
         
 //        let request = RMRequest(
 //            endpoint: .character,
@@ -33,16 +42,14 @@ final class RMCharacterViewController: UIViewController {
 //                print(String(describing: error))
 //            }
 //        }
-        
-        RMService.shared.execute(.listCharatersRequests,
-                                 expecting: RMAllCharactersResponse.self) { result in
-            switch result {
-            case .success(let model):
-                print("Total: " + String(model.info.count))
-                print("Page result count: " + String(model.results.count))
-            case .failure(let error):
-                print(String(describing: error))
-            }
-        }
+    }
+    
+    private func configureUI() {
+        NSLayoutConstraint.activate([
+            characterListView.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor),
+            characterListView.leadingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.leadingAnchor),
+            characterListView.trailingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.trailingAnchor),
+            characterListView.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor),
+        ])
     }
 }

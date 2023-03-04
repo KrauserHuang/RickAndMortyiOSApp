@@ -47,6 +47,14 @@ final class RMRequest {
         return string
     }
     
+    private var urlComponents: URLComponents {
+        var components = URLComponents()
+        components.scheme = "https"
+        components.host = "rickandmortyapi.com"
+        components.path = "api"
+        return components
+    }
+    
     /// Computed & constructed API url
     public var url: URL? {
         return URL(string: urlString)
