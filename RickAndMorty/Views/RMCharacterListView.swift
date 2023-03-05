@@ -37,6 +37,7 @@ final class RMCharacterListView: UIView {
         super.init(frame: frame)
         
         configure()
+        viewModel.delegate = self
         viewModel.fetchCharacters()
         setupCollectionView()
     }
@@ -70,14 +71,17 @@ final class RMCharacterListView: UIView {
         // 可以把view當作collectionView的delegate/dataSource或者把這個工作交給viewModel來做
         collectionView.dataSource = viewModel
         collectionView.delegate = viewModel
+    }
+}
+
+extension RMCharacterListView: RMCharacterListViewViewModelDelegate {
+    func didLoadInitialCharacter() {
+        spinner.stopAnimating()
+        collectionView.isHidden = false
+        collectionView.reloadData()
         
-        DispatchQueue.main.asyncAfter(deadline: .now() + 2) {
-            self.spinner.stopAnimating()
-            
-            self.collectionView.isHidden = false
-            UIView.animate(withDuration: 0.4, delay: 0.2) {
-                self.collectionView.alpha = 1
-            }
+        UIView.animate(withDuration: 0.4, delay: 0.2) {
+            self.collectionView.alpha = 1
         }
     }
 }

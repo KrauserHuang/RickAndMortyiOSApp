@@ -12,7 +12,9 @@ final class RMCharacterCollectionViewCell: UICollectionViewCell {
     
     private let imageView: UIImageView = {
         let imageView = UIImageView()
-        imageView.contentMode = .scaleAspectFit
+        imageView.contentMode = .scaleAspectFill
+        imageView.clipsToBounds = true
+//        imageView.layer.masksToBounds = true
         imageView.translatesAutoresizingMaskIntoConstraints = false
         return imageView
     }()
@@ -39,37 +41,11 @@ final class RMCharacterCollectionViewCell: UICollectionViewCell {
         super.init(frame: frame)
         
         configure()
+        setupLayer()
     }
     
     required init?(coder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
-    }
-    
-    private func configure() {
-        contentView.backgroundColor = .secondarySystemBackground
-        contentView.addSubviews(imageView, nameLabel, statusLabel)
-        
-        NSLayoutConstraint.activate([
-            statusLabel.heightAnchor.constraint(equalToConstant: 40),
-            nameLabel.heightAnchor.constraint(equalToConstant: 40),
-            
-            imageView.topAnchor.constraint(equalTo: contentView.topAnchor),
-            imageView.leadingAnchor.constraint(equalTo: contentView.leadingAnchor),
-            imageView.trailingAnchor.constraint(equalTo: contentView.trailingAnchor),
-            imageView.bottomAnchor.constraint(equalTo: nameLabel.topAnchor, constant: -3),
-            
-            nameLabel.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 5),
-            nameLabel.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -5),
-            nameLabel.bottomAnchor.constraint(equalTo: statusLabel.topAnchor, constant: -3),
-            
-            statusLabel.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 5),
-            statusLabel.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -5),
-            statusLabel.bottomAnchor.constraint(equalTo: contentView.bottomAnchor, constant: -3),
-        ])
-        
-        imageView.backgroundColor = .systemGreen
-        nameLabel.backgroundColor = .yellow
-        statusLabel.backgroundColor = .orange
     }
     
     override func prepareForReuse() {
@@ -80,7 +56,44 @@ final class RMCharacterCollectionViewCell: UICollectionViewCell {
         statusLabel.text = nil
     }
     
-    public func configure(with viewModel: RMCharacterCollectionViewCellViewModel) {
+    override func traitCollectionDidChange(_ previousTraitCollection: UITraitCollection?) {
+        super.traitCollectionDidChange(previousTraitCollection)
+        setupLayer()
+    }
+    
+    private func configure() {
+        contentView.backgroundColor = .secondarySystemBackground
+        contentView.addSubviews(imageView, nameLabel, statusLabel)
+        
+        NSLayoutConstraint.activate([
+            statusLabel.heightAnchor.constraint(equalToConstant: 30),
+            nameLabel.heightAnchor.constraint(equalToConstant: 30),
+            
+            imageView.topAnchor.constraint(equalTo: contentView.topAnchor),
+            imageView.leadingAnchor.constraint(equalTo: contentView.leadingAnchor),
+            imageView.trailingAnchor.constraint(equalTo: contentView.trailingAnchor),
+            imageView.bottomAnchor.constraint(equalTo: nameLabel.topAnchor, constant: -3),
+            
+            nameLabel.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 5),
+            nameLabel.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -5),
+            nameLabel.bottomAnchor.constraint(equalTo: statusLabel.topAnchor),
+            
+            statusLabel.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 5),
+            statusLabel.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -5),
+            statusLabel.bottomAnchor.constraint(equalTo: contentView.bottomAnchor, constant: -3),
+        ])
+    }
+    
+    private func setupLayer() {
+        contentView.layer.cornerRadius = 8
+        contentView.layer.shadowColor = UIColor.secondaryLabel.cgColor
+        contentView.layer.shadowRadius = 4
+        contentView.layer.shadowOffset = CGSize(width: -4, height: 4)
+        contentView.layer.shadowOpacity = 0.4
+//        contentView.layer.masksToBounds = true
+    }
+    
+    public func configure(with viewModel: RMCharacterCollectionViewCellViewModel) { // 用viewModel來設定cell裡的內容
         nameLabel.text = viewModel.characterName
         statusLabel.text = viewModel.characterStatusText
         viewModel.fetchImage { [weak self] result in
