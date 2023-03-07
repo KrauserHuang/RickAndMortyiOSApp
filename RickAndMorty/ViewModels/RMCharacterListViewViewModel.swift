@@ -9,13 +9,17 @@ import UIKit
 
 protocol RMCharacterListViewViewModelDelegate: AnyObject {
     func didLoadInitialCharacter()
+    func didSelectCharacter(_ character: RMCharacter)
 }
 
+/// View Model to handle character list view logic
 final class RMCharacterListViewViewModel: NSObject {
     
     public weak var delegate: RMCharacterListViewViewModelDelegate?
     
-    private var characters: [RMCharater] = [] {
+    private var info: RMAllCharactersResponse.Info? = nil
+    
+    private var characters: [RMCharacter] = [] {
         didSet {
             for character in characters {
                 let viewModel = RMCharacterCollectionViewCellViewModel(
@@ -36,6 +40,8 @@ final class RMCharacterListViewViewModel: NSObject {
             switch result {
             case .success(let responseModel):
                 let results = responseModel.results
+                let info = responseModel.info
+                self?.info = info
                 self?.characters = results
                 DispatchQueue.main.async {
                     self?.delegate?.didLoadInitialCharacter()
@@ -44,6 +50,14 @@ final class RMCharacterListViewViewModel: NSObject {
                 print(String(describing: error))
             }
         }
+    }
+    
+    //處理抓取角色動作
+    public func fetchAdditionalCharacters() {
+        
+    }
+    public var shouldShowLoadMoreIndicator: Bool {
+        return info?.next != nil
     }
 }
 // MARK: - ViewModel handles collectionView delegate/dataSource
@@ -68,5 +82,11 @@ extension RMCharacterListViewViewModel: UICollectionViewDataSource, UICollection
         
         return CGSize(width: width,
                       height: width * 1.5)
+    }
+    
+    func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
+        collectionView.deselectItem(at: indexPath, animated: true)
+        let character = characters[indexPath.item]
+        delegate?.didSelectCharacter(character)
     }
 }

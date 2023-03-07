@@ -21,27 +21,8 @@ final class RMCharacterViewController: UIViewController {
         
         view.backgroundColor = .systemBackground
         view.addSubview(characterListView)
-        
+        characterListView.delegate = self
         configureUI()
-        
-//        let request = RMRequest(
-//            endpoint: .character,
-//            queryParamters: [
-//                URLQueryItem(name: "name", value: "rick"),
-//                URLQueryItem(name: "status", value: "alive")
-//            ]
-//        )
-////        print(request.url)
-//        
-//        RMService.shared.execute(request,
-//                                 expecting: RMCharater.self.self) { result in
-//            switch result {
-//            case .success:
-//                break
-//            case .failure(let error):
-//                print(String(describing: error))
-//            }
-//        }
     }
     
     private func configureUI() {
@@ -51,5 +32,14 @@ final class RMCharacterViewController: UIViewController {
             characterListView.trailingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.trailingAnchor),
             characterListView.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor),
         ])
+    }
+}
+// MARK: - RMCharacterListViewDelegate
+extension RMCharacterViewController: RMCharacterListViewDelegate {
+    func rmCharacterListView(_ characterListView: RMCharacterListView, didSelectCharacter character: RMCharacter) {
+        let viewModel = RMCharacterDetailViewViewModel(character: character)
+        let detailVC = RMCharacterDetailViewController(viewModel: viewModel)
+        detailVC.navigationItem.largeTitleDisplayMode = .never
+        navigationController?.pushViewController(detailVC, animated: true)
     }
 }
