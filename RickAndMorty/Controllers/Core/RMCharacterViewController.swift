@@ -9,6 +9,9 @@ import UIKit
 
 /*
  把網路抓取層移到ViewModel
+ 負責貼上RMCharacterListView(UI)
+ 
+ RMCharacterDetialViewViewModel(character) -> RMCharacterDetailViewController
  */
 
 /// Controller to show and search for Characters

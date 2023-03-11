@@ -17,6 +17,8 @@ final class RMCharacterListViewViewModel: NSObject {
     
     public weak var delegate: RMCharacterListViewViewModelDelegate?
     
+    private var isLoadingMoreCharacters = false
+    
     private var info: RMAllCharactersResponse.Info? = nil
     
     private var characters: [RMCharacter] = [] {
@@ -54,7 +56,7 @@ final class RMCharacterListViewViewModel: NSObject {
     
     //處理抓取角色動作
     public func fetchAdditionalCharacters() {
-        
+        isLoadingMoreCharacters = true
     }
     public var shouldShowLoadMoreIndicator: Bool {
         return info?.next != nil
@@ -88,5 +90,44 @@ extension RMCharacterListViewViewModel: UICollectionViewDataSource, UICollection
         collectionView.deselectItem(at: indexPath, animated: true)
         let character = characters[indexPath.item]
         delegate?.didSelectCharacter(character)
+    }
+    
+    //建立collectionView的supplementaryView，這裡拿來建立其footer
+    func collectionView(_ collectionView: UICollectionView, viewForSupplementaryElementOfKind kind: String, at indexPath: IndexPath) -> UICollectionReusableView {
+        
+        guard kind == UICollectionView.elementKindSectionFooter,
+              let footer = collectionView.dequeueReusableSupplementaryView(ofKind: kind,
+                                                                           withReuseIdentifier: RMFooterLoadingCollectionReusableView.reuseIdentifier,
+                                                                           for: indexPath) as? RMFooterLoadingCollectionReusableView else {
+            fatalError("Unsuppoerted")
+        }
+        footer.startAnimating()
+        return footer
+    }
+    
+    func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, referenceSizeForFooterInSection section: Int) -> CGSize {
+        guard shouldShowLoadMoreIndicator else {
+            return .zero
+        }
+        return CGSize(width: collectionView.frame.width, height: 100)
+    }
+}
+
+extension RMCharacterListViewViewModel: UIScrollViewDelegate {
+    func scrollViewDidScroll(_ scrollView: UIScrollView) {
+        guard shouldShowLoadMoreIndicator, !isLoadingMoreCharacters else { return }
+        
+        let offset = scrollView.contentOffset.y
+        let totalContentHeight = scrollView.contentSize.height
+        let totalScrollViewFixedHeight = scrollView.frame.size.height
+        
+        if offset >= (totalContentHeight - totalScrollViewFixedHeight - 120) {
+            print("Should start fetching more")
+            fetchAdditionalCharacters()
+        }
+        
+//        print("Offset:\(offset)")
+//        print("totalContentHeight:\(totalContentHeight)")
+//        print("totalScrollViewFixedHeight:\(totalScrollViewFixedHeight)")
     }
 }
