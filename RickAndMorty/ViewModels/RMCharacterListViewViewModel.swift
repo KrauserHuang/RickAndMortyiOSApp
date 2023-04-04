@@ -10,6 +10,7 @@ import UIKit
 protocol RMCharacterListViewViewModelDelegate: AnyObject {
     func didLoadInitialCharacter()
     func didSelectCharacter(_ character: RMCharacter)
+    func didLoadMoreCharacters(with newIndexPaths: [IndexPath])
 }
 
 /// View Model to handle character list view logic
@@ -19,7 +20,7 @@ final class RMCharacterListViewViewModel: NSObject {
     
     private var isLoadingMoreCharacters = false
     
-    private var info: RMAllCharactersResponse.Info? = nil
+    private var apiInfo: RMGetAllCharactersResponse.Info? = nil
     
     private var characters: [RMCharacter] = [] {
         didSet {
@@ -29,7 +30,9 @@ final class RMCharacterListViewViewModel: NSObject {
                     characterStatus: character.status,
                     characterImageURL: URL(string: character.image)
                 )
-                cellViewModels.append(viewModel)
+                if !cellViewModels.contains(viewModel) {
+                    cellViewModels.append(viewModel)
+                }
             }
         }
     }
@@ -38,12 +41,12 @@ final class RMCharacterListViewViewModel: NSObject {
     
     public func fetchCharacters() {
         RMService.shared.execute(.listCharatersRequests,
-                                 expecting: RMAllCharactersResponse.self) { [weak self] result in
+                                 expecting: RMGetAllCharactersResponse.self) { [weak self] result in
             switch result {
             case .success(let responseModel):
                 let results = responseModel.results
                 let info = responseModel.info
-                self?.info = info
+                self?.apiInfo = info
                 self?.characters = results
                 DispatchQueue.main.async {
                     self?.delegate?.didLoadInitialCharacter()
@@ -55,11 +58,44 @@ final class RMCharacterListViewViewModel: NSObject {
     }
     
     //處理抓取角色動作
-    public func fetchAdditionalCharacters() {
+    public func fetchAdditionalCharacters(url: URL) { // -> 更新url來抓第二層角色
+        guard !isLoadingMoreCharacters else {
+            return
+        }
         isLoadingMoreCharacters = true
+        guard let request = RMRequest(url: url) else {
+            isLoadingMoreCharacters = false
+            return
+        }
+        RMService.shared.execute(request,
+                                 expecting: RMGetAllCharactersResponse.self) { [weak self] result in
+            guard let self else { return }
+            switch result {
+            case .success(let responseModel):
+                let moreResults = responseModel.results
+                let info = responseModel.info
+                self.apiInfo = info
+                
+                let originalCount = self.characters.count // -> 拿到舊的數量
+                let newCount = moreResults.count // 抓到新的數量
+                let startingIndex = originalCount
+                let indexPathsToAdd: [IndexPath] = Array(startingIndex..<(startingIndex+newCount)).compactMap {
+                    return IndexPath(row: $0, section: 0)
+                }
+                
+                self.characters.append(contentsOf: moreResults)
+                DispatchQueue.main.async {
+                    self.delegate?.didLoadMoreCharacters(with: indexPathsToAdd)
+                    self.isLoadingMoreCharacters = false
+                }
+            case .failure(let failure):
+                print(String(describing: failure))
+                self.isLoadingMoreCharacters = false
+            }
+        }
     }
     public var shouldShowLoadMoreIndicator: Bool {
-        return info?.next != nil
+        return apiInfo?.next != nil
     }
 }
 // MARK: - ViewModel handles collectionView delegate/dataSource
@@ -115,19 +151,26 @@ extension RMCharacterListViewViewModel: UICollectionViewDataSource, UICollection
 
 extension RMCharacterListViewViewModel: UIScrollViewDelegate {
     func scrollViewDidScroll(_ scrollView: UIScrollView) {
-        guard shouldShowLoadMoreIndicator, !isLoadingMoreCharacters else { return }
-        
-        let offset = scrollView.contentOffset.y
-        let totalContentHeight = scrollView.contentSize.height
-        let totalScrollViewFixedHeight = scrollView.frame.size.height
-        
-        if offset >= (totalContentHeight - totalScrollViewFixedHeight - 120) {
-            print("Should start fetching more")
-            fetchAdditionalCharacters()
-        }
+        guard shouldShowLoadMoreIndicator,
+              !isLoadingMoreCharacters,
+              !cellViewModels.isEmpty,
+              let nextUrlString = apiInfo?.next,
+              let url = URL(string: nextUrlString) else { return }
         
 //        print("Offset:\(offset)")
 //        print("totalContentHeight:\(totalContentHeight)")
 //        print("totalScrollViewFixedHeight:\(totalScrollViewFixedHeight)")
+        
+        Timer.scheduledTimer(withTimeInterval: 0.2, repeats: false) { [weak self] t in // -> 拉到底才會執行
+            let offset = scrollView.contentOffset.y
+            let totalContentHeight = scrollView.contentSize.height
+            let totalScrollViewFixedHeight = scrollView.frame.size.height
+            
+            if offset >= (totalContentHeight - totalScrollViewFixedHeight - 120) {
+                print("Should start fetching more")
+                self?.fetchAdditionalCharacters(url: url)
+            }
+            t.invalidate() // -> clean your self up
+        }
     }
 }
