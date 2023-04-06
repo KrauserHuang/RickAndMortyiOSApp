@@ -82,19 +82,29 @@ final class RMRequest {
         self.pathComponents = pathComponents
         self.queryParameters = queryParamters
     }
-    
+    /// Attempt to create request
+    /// - Parameter url: URL to parse
     convenience init?(url: URL) {
         let string = url.absoluteString
         if !string.contains(Constants.baseUrl) {
             return nil
         }
+        print("string = \(string)")
         let trimmed = string.replacingOccurrences(of: Constants.baseUrl+"/", with: "")
+        print("trimmed = \(trimmed)")
         if trimmed.contains("/") {
             let components = trimmed.components(separatedBy: "/")
+            print("components = \(components)")
             if !components.isEmpty {
-                let endpointString = components[0]
-                if let rmEnpoint = RMEndpoint(rawValue: endpointString) {
-                    self.init(endpoint: rmEnpoint)
+                let endpointString = components[0] // Endpoint = character -> path的路徑
+                var pathComponents: [String] = []
+                if components.count > 1 {
+                    pathComponents = components // pathComponents = 1 -> 參數
+                    pathComponents.removeFirst()
+                    print("pathComponents = \(pathComponents)")
+                }
+                if let rmEnpoint = RMEndpoint(rawValue: endpointString) { // 取的路徑與參數，再把它做初始化
+                    self.init(endpoint: rmEnpoint, pathComponents: pathComponents)
                     return
                 }
             }
