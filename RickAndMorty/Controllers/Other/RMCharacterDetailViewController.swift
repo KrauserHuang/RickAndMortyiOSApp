@@ -77,19 +77,31 @@ extension RMCharacterDetailViewController: UICollectionViewDelegate, UICollectio
         switch sectionType {
         case .photo(let viewModel):
             guard let cell = collectionView.dequeueReusableCell(withReuseIdentifier: RMCharacterPhotoCollectionViewCell.reuseIdentifier, for: indexPath) as? RMCharacterPhotoCollectionViewCell else { fatalError() }
-            cell.backgroundColor = .systemPink
             cell.configure(with: viewModel)
             return cell
         case .information(let viewModels):
             guard let cell = collectionView.dequeueReusableCell(withReuseIdentifier: RMCharacterInfoCollectionViewCell.reuseIdentifier, for: indexPath) as? RMCharacterInfoCollectionViewCell else { fatalError() }
-            cell.backgroundColor = .systemGreen
             cell.configure(with: viewModels[indexPath.row])
             return cell
         case .episodes(let viewModels):
             guard let cell = collectionView.dequeueReusableCell(withReuseIdentifier: RMCharacterEpisodeCollectionViewCell.reuseIdentifier, for: indexPath) as? RMCharacterEpisodeCollectionViewCell else { fatalError() }
-            cell.backgroundColor = .systemBlue
-            cell.configure(with: viewModels[indexPath.row])
+            let viewModel = viewModels[indexPath.row]
+            cell.configure(with: viewModel)
             return cell
+        }
+    }
+    
+    func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
+        let sectionType = viewModel.sections[indexPath.section]
+        
+        switch sectionType {
+        case .photo, .information:
+            break
+        case .episodes:
+            let episodes = self.viewModel.episodes
+            let selection = episodes[indexPath.row]
+            let vc = RMEpisodeDetailViewController(url: URL(string: selection))
+            navigationController?.pushViewController(vc, animated: true)
         }
     }
 }

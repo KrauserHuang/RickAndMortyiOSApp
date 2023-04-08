@@ -11,6 +11,10 @@ final class RMCharacterDetailViewViewModel {
     
     private let character: RMCharacter
     
+    public var episodes: [String] {
+        character.episode
+    }
+    
     enum SectionType {
         case photo(viewModel: RMCharacterPhotoCollectionViewCellViewModel)
         case information(viewModels: [RMCharacterInfoCollectionViewCellViewModel])
@@ -28,19 +32,20 @@ final class RMCharacterDetailViewViewModel {
     
     private func setupSections() {
         sections = [
-            .photo(viewModel: .init()),
+            .photo(viewModel: .init(imageUrl: URL(string: character.image))),
             .information(viewModels: [
-                .init(),
-                .init(),
-                .init(),
-                .init()
+                .init(type: .status ,value: character.status.text),
+                .init(type: .gender ,value: character.gender.rawValue),
+                .init(type: .type ,value: character.type),
+                .init(type: .species ,value: character.species),
+                .init(type: .origin ,value: character.origin.name),
+                .init(type: .location ,value: character.location.name),
+                .init(type: .created ,value: character.created),
+                .init(type: .episodeCount,value: "\(character.episode.count)"),
             ]),
-            .episodes(viewModels: [
-                .init(),
-                .init(),
-                .init(),
-                .init()
-            ])
+            .episodes(viewModels: character.episode.compactMap({
+                return RMCharacterEpisodeCollectionViewCellViewModel(episodeDataUrl: URL(string: $0))
+            }))
         ]
     }
     
@@ -83,7 +88,7 @@ final class RMCharacterDetailViewViewModel {
     public func createInformationSectionLayout() -> NSCollectionLayoutSection {
         let item = NSCollectionLayoutItem(layoutSize: NSCollectionLayoutSize(widthDimension: .fractionalWidth(0.5),
                                                                              heightDimension: .fractionalHeight(1.0)))
-        item.contentInsets = NSDirectionalEdgeInsets(top: 8, leading: 8, bottom: 8, trailing: 8)
+        item.contentInsets = NSDirectionalEdgeInsets(top: 2, leading: 2, bottom: 2, trailing: 2)
         let group = NSCollectionLayoutGroup.horizontal(layoutSize: NSCollectionLayoutSize(widthDimension: .fractionalWidth(1.0),
                                                                                         heightDimension: .absolute(150)),
                                                      subitems: [item])
@@ -94,7 +99,7 @@ final class RMCharacterDetailViewViewModel {
     public func createEpisodeSectionLayout() -> NSCollectionLayoutSection {
         let item = NSCollectionLayoutItem(layoutSize: NSCollectionLayoutSize(widthDimension: .fractionalWidth(1.0),
                                                                              heightDimension: .fractionalHeight(1.0)))
-        item.contentInsets = NSDirectionalEdgeInsets(top: 10, leading: 10, bottom: 10, trailing: 10)
+        item.contentInsets = NSDirectionalEdgeInsets(top: 10, leading: 5, bottom: 10, trailing: 8)
         let group = NSCollectionLayoutGroup.horizontal(layoutSize: NSCollectionLayoutSize(widthDimension: .fractionalWidth(0.8),
                                                                                         heightDimension: .absolute(150)),
                                                      subitems: [item])

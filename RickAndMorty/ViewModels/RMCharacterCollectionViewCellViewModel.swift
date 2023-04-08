@@ -30,7 +30,6 @@ final class RMCharacterCollectionViewCellViewModel: Hashable {
             completion(.failure(URLError(.badURL)))
             return
         }
-        let request = URLRequest(url: url)
         RMImageLoader.shared.downloadImage(url, completion: completion)
     }
     
