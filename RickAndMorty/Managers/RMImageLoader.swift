@@ -21,7 +21,7 @@ final class RMImageLoader {
     func downloadImage(_ url: URL, completion: @escaping (Result<Data, Error>) -> Void) {
         let key = url.absoluteString as NSString
         if let data = imageDataCache.object(forKey: key) { // 如果輸入的url(key)有值(data)，直接輸出data
-            print("Reading from cache: \(key)")
+//            print("Reading from cache: \(key)")
             completion(.success(data as Data)) // NSData == Data | NSString == String
             return
         }

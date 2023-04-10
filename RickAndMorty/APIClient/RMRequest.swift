@@ -15,7 +15,7 @@ final class RMRequest {
     }
     
     /// Desired endpoint
-    private let endpoint: RMEndpoint
+    let endpoint: RMEndpoint
     
     /// Path components for API, if any
     private let pathComponents: [String]
@@ -89,19 +89,19 @@ final class RMRequest {
         if !string.contains(Constants.baseUrl) {
             return nil
         }
-        print("string = \(string)")
+//        print("string = \(string)")
         let trimmed = string.replacingOccurrences(of: Constants.baseUrl+"/", with: "")
-        print("trimmed = \(trimmed)")
+//        print("trimmed = \(trimmed)")
         if trimmed.contains("/") {
             let components = trimmed.components(separatedBy: "/")
-            print("components = \(components)")
+//            print("components = \(components)")
             if !components.isEmpty {
                 let endpointString = components[0] // Endpoint = character -> path的路徑
                 var pathComponents: [String] = []
                 if components.count > 1 {
                     pathComponents = components // pathComponents = 1 -> 參數
                     pathComponents.removeFirst()
-                    print("pathComponents = \(pathComponents)")
+//                    print("pathComponents = \(pathComponents)")
                 }
                 if let rmEnpoint = RMEndpoint(rawValue: endpointString) { // 取的路徑與參數，再把它做初始化
                     self.init(endpoint: rmEnpoint, pathComponents: pathComponents)
