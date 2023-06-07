@@ -26,7 +26,7 @@ final class RMService {
     /// Send Rick and Morty API call
     /// - Parameters:
     ///   - request: Request instance
-    ///   - tyoe: The type of object we expect to get back
+    ///   - type: The type of object we expect to get back
     ///   - completion: Callback with data or error
     public func execute<T: Codable>(_ request: RMRequest,
                                     expecting type: T.Type,
@@ -34,7 +34,7 @@ final class RMService {
         
         if let cachedData = cacheManager.cachedResponse(for: request.endpoint,
                                                         url: request.url) {
-            print("Using cached API Response")
+//            print("Using cached API Response")
             do {
                 let result = try JSONDecoder().decode(type.self, from: cachedData)
                 
